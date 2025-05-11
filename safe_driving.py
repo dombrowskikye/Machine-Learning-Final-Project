@@ -1,3 +1,6 @@
+#Get baseline safe driver data
+
+
 import numpy as np
 import pandas as pd
 import random 
@@ -33,14 +36,14 @@ def save_image(image):
     print(f"Image saved: {image.frame}")
 
 #Creating CSV file for data collection from LIDAR AND RADAR sensors
-csv_file = open('sensor_data.csv', 'w', newline='')
+csv_file = open('safe_driving_data.csv', 'w', newline='')
 csv_writer = csv.writer(csv_file)
-csv_writer.writerow(['Timestamp', 'sensor_type', 'x', 'y', 'z', 'velocity', 'vehicle_id'])
+csv_writer.writerow(['Timestamp', 'sensor_type', 'x', 'y', 'z', 'velocity', 'vehicle_id', 'sensor_id'])
 
 
 # Saving data function
 def save_data(sensor_type, sensor_data, sensor_id):
-    #Filter if the data is not an actual dirver in the simulation (for example, just a tree). 
+    #Filter if the data is not an actual driver in the simulation (for example, just a tree).
     if sensor_type == 'RADAR':
         for data in sensor_data:
             #get the radar location
@@ -133,7 +136,7 @@ for i in range(20):
     except RuntimeError:
         continue
 
-# Set of reckless driving vehicles
+# Set of safe drivers
 for i in range(20):
     vehicle_bp = random.choice(blueprint_library.filter('vehicle.*'))
     raw_loc = carla.Location(x=92.18, y=168.48, z=.97)
@@ -142,11 +145,8 @@ for i in range(20):
     try: 
         vehicle = world.spawn_actor(vehicle_bp, vehicle_transform)
         vehicle.set_autopilot(True, tm.get_port())
-        tm.ignore_lights_percentage(vehicle, 100.0)  # Ignore traffic lights
-        tm.distance_to_leading_vehicle(vehicle, 0.5)  # Follow closely
-        tm.vehicle_percentage_speed_difference(vehicle, -200.0)  # Speed up
         vehicles_list.append(vehicle)
-        time.sleep(45)
+        time.sleep(30)
     except RuntimeError:
         continue
 
