@@ -4,24 +4,27 @@ import pandas as pd
 import sklearn
 from sklearn.ensemble import IsolationForest
 
-#Loading the CSV data from CARLA simulation of good and bad drivers
+#Loading the CSV data from CARLA simulation of good drivers
 
-data = pd.read_csv('sensor_data_safe_and_reckless.csv')
-
-data = data.dropna(subset=['x', 'y', 'z', 'velocity'])
+safe_data = pd.read_csv('safe_driving_data.csv')
+safe_data = safe_data.dropna(subset=['x', 'y', 'z', 'velocity'])
 
 # Reduce noise in the data
-cleaned_features = data.groupby('vehicle_id')[['x', 'y', 'z', 'velocity']].mean().reset_index()
+cleaned_features = safe_data.groupby('vehicle_id')[['x', 'y', 'z', 'velocity']].mean().reset_index()
 
 #Train the Isolation Forest model
 model = IsolationForest(n_estimators=100, contamination=0.1, random_state=42)
 model.fit(cleaned_features[['x', 'y', 'z', 'velocity']])
 
-# Predict the reckless driving (using outliers) 
-cleaned_features['anomaly'] = model.predict(cleaned_features[['x', 'y', 'z', 'velocity']])
+# Predict the reckless driving (using outliers) from the safe and reckless driving data
+safe_reckless = pd.read_csv('sensor_data_safe_and_reckless.csv')
+safe_reckless = safe_reckless.dropna(subset=['x', 'y', 'z', 'velocity'])
+safe_reckless_cleaned = safe_reckless.groupby('vehicle_id')[['x', 'y', 'z', 'velocity']].mean().reset_index()
+# Predict the anomalies
+safe_reckless_cleaned['anomaly'] = model.predict(safe_reckless_cleaned[['x', 'y', 'z', 'velocity']])
 
 # Get and print the reckless drivers
-reckless_drivers = cleaned_features[cleaned_features['anomaly'] == -1]
+reckless_drivers = safe_reckless_cleaned[safe_reckless_cleaned['anomaly'] == -1]
 print("Reckless drivers detected:")
 for index, row in reckless_drivers.iterrows():
     print(f"Driver ID: {row['vehicle_id']}, Anomaly Score: {row['anomaly']}")

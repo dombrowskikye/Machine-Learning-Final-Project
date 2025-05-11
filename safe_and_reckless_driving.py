@@ -29,7 +29,7 @@ spectator.set_transform(carla.Transform(sensor_location, sensor_rotation))
 
 #Creating a picture image of the passing vehicles with timestamp and frame
 def save_image(image):
-    image.save_to_disk('camera_images/%06d.png' % image.frame, carla.ColorConverter.Raw)
+    image.save_to_disk('camera_reckless_and_safe/%06d.png' % image.frame, carla.ColorConverter.Raw)
     print(f"Image saved: {image.frame}")
 
 #Creating CSV file for data collection from LIDAR AND RADAR sensors
