@@ -1,6 +1,3 @@
-#Get baseline safe driver data
-
-
 import numpy as np
 import pandas as pd
 import random 
@@ -24,6 +21,7 @@ world = client.load_world('Town01')
 blueprint_library = world.get_blueprint_library()
 vehicles_list = []
 
+
 #Moving the cursor to the sensor and camnera location
 spectator = world.get_spectator()
 sensor_location = carla.Location(x=100, y=50, z=10)
@@ -42,18 +40,18 @@ csv_writer.writerow(['Timestamp', 'sensor_type', 'x', 'y', 'z', 'velocity', 'veh
 
 
 # Saving data function
-def save_data(sensor_type, sensor_data, sensor_id):
-    #Filter if the data is not an actual driver in the simulation (for example, just a tree).
+def save_data(sensor_type, sensor_transform, sensor_data, sensor_id):
+    #Filter if the data is not an actual dirver in the simulation (for example, just a tree). 
     if sensor_type == 'RADAR':
         for data in sensor_data:
             #get the radar location
             x = data.depth * np.cos(data.azimuth)
             y = data.depth * np.sin(data.azimuth)
-            radar_location = carla.Location(x=radar_transform.location.x + x, y=radar_transform.location.y +y, z=radar_transform.location.z)
+            radar_location = carla.Location(x=sensor_transform.location.x + x, y=sensor_transform.location.y +y, z=sensor_transform.location.z)
             #check if the vehicle is near the detection location
             for vehicle in vehicles_list:
                 vehicle_location = vehicle.get_transform().location
-                if radar_location.distance(vehicle_location) < 6:
+                if radar_location.distance(vehicle_location) < 8:
                     csv_writer.writerow([time.time(), sensor_type, data.depth, data.azimuth, data.altitude, data.velocity, vehicle.id, sensor_id])
                     break
 
@@ -80,19 +78,19 @@ def save_data(sensor_type, sensor_data, sensor_id):
 radar_blueprint = blueprint_library.find('sensor.other.radar')
 radar_transform = carla.Transform(carla.Location(x=100, y=50, z=3))
 radar_sensor = world.spawn_actor(radar_blueprint, radar_transform)
-radar_sensor.listen(lambda data: save_data('RADAR', data, 'radar_1'))
+radar_sensor.listen(lambda data: save_data('RADAR', radar_transform, data, 'radar_1'))
 
 #Create the 2nd RADAR sensors and start collecting data
 radar_blueprint2 = blueprint_library.find('sensor.other.radar')
 radar_transform2 = carla.Transform(carla.Location(x=96.17, y=75.19, z=1.72))
 radar_sensor2 = world.spawn_actor(radar_blueprint2, radar_transform2)
-radar_sensor2.listen(lambda data: save_data('RADAR', data, 'radar_2'))
+radar_sensor2.listen(lambda data: save_data('RADAR', radar_transform2, data, 'radar_2'))
 
 #Create the 3rd RADAR sensors and start collecting data
 radar_blueprint3 = blueprint_library.find('sensor.other.radar')
 radar_transform3 = carla.Transform(carla.Location(x=96.17, y=75.19, z=1.72))
 radar_sensor3 = world.spawn_actor(radar_blueprint3, radar_transform3)
-radar_sensor3.listen(lambda data: save_data('RADAR', data, 'radar_3'))
+radar_sensor3.listen(lambda data: save_data('RADAR', radar_transform3, data, 'radar_3'))
 
 #Creating the RGB camera to take pictures of the vehicles in the simulation
 camera_blueprint = blueprint_library.find('sensor.camera.rgb')  
@@ -136,7 +134,7 @@ for i in range(20):
     except RuntimeError:
         continue
 
-# Set of safe drivers
+# Set of safe driving vehicles
 for i in range(20):
     vehicle_bp = random.choice(blueprint_library.filter('vehicle.*'))
     raw_loc = carla.Location(x=92.18, y=168.48, z=.97)

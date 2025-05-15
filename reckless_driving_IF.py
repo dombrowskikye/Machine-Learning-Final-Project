@@ -3,6 +3,7 @@
 import pandas as pd 
 import sklearn
 from sklearn.ensemble import IsolationForest
+from sklearn.metrics import classification_report, confusion_matrix
 
 #Loading the CSV data from CARLA simulation of good drivers
 
@@ -20,8 +21,21 @@ model.fit(cleaned_features[['x', 'y', 'z', 'velocity']])
 safe_reckless = pd.read_csv('sensor_data_safe_and_reckless.csv')
 safe_reckless = safe_reckless.dropna(subset=['x', 'y', 'z', 'velocity'])
 safe_reckless_cleaned = safe_reckless.groupby('vehicle_id')[['x', 'y', 'z', 'velocity']].mean().reset_index()
-# Predict the anomalies
+
+# Ammend labels for the reckless driving
+driving_behavior = safe_reckless[['vehicle_id', 'reckless_driving']].drop_duplicates()
+safe_reckless_cleaned = safe_reckless_cleaned.merge(driving_behavior, on='vehicle_id', how='left')
+
+# Predict the reckless drivers  
 safe_reckless_cleaned['anomaly'] = model.predict(safe_reckless_cleaned[['x', 'y', 'z', 'velocity']])
+
+#convert the IF labels from -1 and 1 to 0 and 1 for ease of running metrics
+safe_reckless_cleaned['predicted_label'] = safe_reckless_cleaned['anomaly'].apply(lambda x: 1 if x == -1 else 0)
+
+#Run model metrics
+print(classification_report(safe_reckless_cleaned['reckless_driving'], safe_reckless_cleaned['predicted_label'], target_names=['Safe', 'Reckless']))
+print(confusion_matrix(safe_reckless_cleaned['reckless_driving'], safe_reckless_cleaned['predicted_label']))
+
 
 # Get and print the reckless drivers
 reckless_drivers = safe_reckless_cleaned[safe_reckless_cleaned['anomaly'] == -1]
