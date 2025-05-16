@@ -9,7 +9,7 @@
 
 **Downloading Carla**
 
-* Carla Instructions Link (long process and only necessary for data collection): https://carla.readthedocs.io/en/0.9.13/
+* Carla 0.9.13 Instructions Link (long process and only necessary for data collection): https://carla.readthedocs.io/en/0.9.13/
 
 
 **Logistic Regression Driver Behavior Classification (CARLA)**
